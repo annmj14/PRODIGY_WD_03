@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tic-Tac-Toe</title>
+  <style>
+    body {
+      background-image: url('tic.jpg');
+      background-size: cover;
+      background-position: center;
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(3, 120px);
+      grid-template-rows: repeat(3, 120px);
+      gap: 0;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: -2px;
+    }
+
+    .cell {
+      width: 120px;
+      height: 120px;
+      border: 2px solid #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 48px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      background-color: #fff;
+      margin: -2px;
+    }
+
+    .cell:hover {
+      background-color: #f2f2f2;
+    }
+
+    .game-info {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #game-status {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .button-container {
+      display: flex;
+      align-items: center;
+    }
+
+    .button-container button {
+      background-color: #333;
+      color: #fff;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      font-size: 16px;
+      margin-left: 10px;
+    }
+
+    .button-container button:hover {
+      background-color: #7f7f7f;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tic-Tac-Toe</h1>
+  <div class="game-board">
+    <div class="row">
+      <div class="cell" id="cell-0"></div>
+      <div class="cell" id="cell-1"></div>
+      <div class="cell" id="cell-2"></div>
+    </div>
+    <div class="row">
+      <div class="cell" id="cell-3"></div>
+      <div class="cell" id="cell-4"></div>
+      <div class="cell" id="cell-5"></div>
+    </div>
+    <div class="row">
+      <div class="cell" id="cell-6"></div>
+      <div class="cell" id="cell-7"></div>
+      <div class="cell" id="cell-8"></div>
+    </div>
+  </div>
+  <div class="game-info">
+    <p id="game-status">Tap to Play!</p>
+    <div class="button-container">
+      <button id="reset-button">Reset Game</button>
+      <button id="toggleBtn" onclick="toggleMode()">Play against Computer</button>
+    </div>
+  </div>
+  <script>
+    const cells = document.querySelectorAll(".cell");
+    const gameStatusElement = document.getElementById("game-status");
+    const resetButton = document.getElementById("reset-button");
+    const toggleBtn = document.getElementById("toggleBtn");
+
+    let currentPlayer = "X";
+    let gameBoard = Array(9).fill(null);
+    let gameOver = false;
+    let againstComputer = false;
+
+    cells.forEach((cell) => {
+      cell.addEventListener("click", (event) => {
+        if (gameOver) return;
+        const cellIndex = event.target.id.split("-")[1];
+        if (gameBoard[cellIndex] === null) {
+          gameBoard[cellIndex] = currentPlayer;
+          event.target.textContent = currentPlayer;
+          checkWin();
+          currentPlayer = currentPlayer === "X"? "O" : "X";
+          if (againstComputer && currentPlayer === "O" && !gameOver) {
+            playComputer();
+          }
+        }
+      });
+    });
+
+    resetButton.addEventListener("click", () => {
+      gameBoard = Array(9).fill(null);
+      cells.forEach((cell) => {
+        cell.textContent = "";
+      });
+      gameOver = false;
+      currentPlayer = "X";
+      gameStatusElement.textContent = "Game in progress...";
+    });
+
+    toggleBtn.addEventListener("click", () => {
+      againstComputer = !againstComputer;
+      toggleBtn.innerText = againstComputer ? "Play against Player" : "Play against Computer";
+      resetGame();
+    });
+
+    const checkWin = () => {
+      const winConditions = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+      ];
+
+      for (const condition of winConditions) {
+        const [a, b, c] = condition;
+        if (
+          gameBoard[a] &&
+          gameBoard[a] === gameBoard[b] &&
+          gameBoard[a] === gameBoard[c]
+        ) {
+          gameOver = true;
+          gameStatusElement.textContent = `${gameBoard[a]} wins!`;
+          return;
+        }
+      }
+
+      if (!gameBoard.includes(null)) {
+        gameOver = true;
+        gameStatusElement.textContent = "It's a draw!";
+      }
+    };
+
+    const resetGame = () => {
+      gameBoard = Array(9).fill(null);
+      cells.forEach((cell) => {
+        cell.textContent = "";
+      });
+      gameOver = false;
+      currentPlayer = "X";
+      gameStatusElement.textContent = "Game in progress...";
+    };
+
+    const playComputer = () => {
+      const emptyCells = gameBoard.reduce((acc, val, index) => {
+        if (val === null) {
+          acc.push(index);
+        }
+        return acc;
+      }, []);
+
+      const randomIndex = Math.floor(Math.random() * emptyCells.length);
+      const computerMoveIndex = emptyCells[randomIndex];
+      gameBoard[computerMoveIndex] = currentPlayer;
+      cells[computerMoveIndex].textContent = currentPlayer;
+      checkWin();
+      currentPlayer = currentPlayer === "X" ? "O" : "X";
+    };
+  </script>
+</body>
+</html>
